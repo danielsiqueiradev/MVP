@@ -1,80 +1,70 @@
+
+import pandas as pd # type: ignore
 import requests
-from datetime import datetime
-import pandas as pd
+import time
 
+# --- CONFIGURAÇÕES DE CRIA ---
 api_key = "d586bba83710b6aa29d7c6776bcc3335"
-hoje = datetime.now().strftime('%Y-%m-%d')
-ano_alvo = 2026
-data_fim = f"{ano_alvo}-12-31"
+arquivo_limpo = "ancine_filtrada.csv"
 
-print("Preparando o terreno pro Megazord 2.0... 🛠️")
+print("1. Puxando a base limpa da Ancine... 📚")
+df_limpo = pd.read_csv(arquivo_limpo, sep=";")
+total_filmes = len(df_limpo)
 
-filmes_do_ano = []
-pagina_atual = 1
-total_paginas = 1 
+dados_finais = []
 
-print(f"Buscando a tropa de {hoje} até o fim do ano... 🍿\n")
+print(f"\n2. Ligando o motor! Partiu buscar {total_filmes} filmes no TMDB... 🚀\n")
 
-while pagina_atual <= total_paginas:
-    # 1. Busca a listagem básica da página
-    url_discover = f"https://api.themoviedb.org/3/discover/movie?api_key={api_key}&language=pt-BR&region=BR&release_date.gte={hoje}&release_date.lte={data_fim}&with_release_type=2|3&sort_by=release_date.asc&page={pagina_atual}"
-    response_discover = requests.get(url_discover)
+# O loop agora tá sem limite, vai ler a tabela inteira!
+for indice, linha in df_limpo.iterrows():
+    nome_filme = linha['TITULO_ORIGINAL']
+    publico = linha['PUBLICO']
+    progresso = f"[{indice + 1}/{total_filmes}]"
     
-    if response_discover.status_code == 200:
-        dados = response_discover.json()
-        if pagina_atual == 1:
-            total_paginas = dados['total_pages']
-            print(f"Alvo: {dados['total_results']} filmes. Ativando o modo turbo (append_to_response)! 🚀")
+    try:
+        # Batida 1: Buscar o ID
+        url_busca = f"https://api.themoviedb.org/3/search/movie?api_key={api_key}&query={nome_filme}&language=pt-BR"
+        resposta_busca = requests.get(url_busca).json()
         
-        for filme_basico in dados['results']:
-            id_filme = filme_basico['id']
+        if len(resposta_busca.get('results', [])) > 0:
+            id_tmdb = resposta_busca['results'][0]['id']
             
-            # --- O PULO DO GATO: DETALHES + CRÉDITOS NUMA CAJADADA SÓ ---
-            url_detalhes = f"https://api.themoviedb.org/3/movie/{id_filme}?api_key={api_key}&language=pt-BR&append_to_response=credits"
-            resp_detalhes = requests.get(url_detalhes).json()
+            # Batida 2: Ficha completa (Gêneros, Elenco, Diretor e Produtoras)
+            url_detalhes = f"https://api.themoviedb.org/3/movie/{id_tmdb}?api_key={api_key}&language=pt-BR&append_to_response=credits"
+            resposta_detalhes = requests.get(url_detalhes).json()
             
-            # Pegando os Gêneros (agora já vem com nome certinho da API)
-            generos_lista = [g['name'] for g in resp_detalhes.get('genres', [])]
-            texto_generos = ", ".join(generos_lista)
+            # Puxando a rapaziada toda
+            generos = ", ".join([g['name'] for g in resposta_detalhes.get('genres', [])])
+            elenco = resposta_detalhes.get('credits', {}).get('cast', [])
+            atores = ", ".join([ator['name'] for ator in elenco[:3]]) 
             
-            # Pegando Produtoras (Warner, Universal, etc)
-            produtoras_lista = [p['name'] for p in resp_detalhes.get('production_companies', [])]
-            texto_produtoras = ", ".join(produtoras_lista)
+            produtoras_lista = resposta_detalhes.get('production_companies', [])
+            produtoras = ", ".join([p['name'] for p in produtoras_lista])
             
-            # Elenco e Diretor vêm na mesma sacola agora (credits)
-            creditos = resp_detalhes.get('credits', {})
-            elenco = creditos.get('cast', [])
-            atores_principais = [ator['name'] for ator in elenco[:3]]
-            texto_elenco = ", ".join(atores_principais)
+            equipe = resposta_detalhes.get('credits', {}).get('crew', [])
+            diretores = ", ".join([m['name'] for m in equipe if m.get('job') == 'Director'])
             
-            equipe = creditos.get('crew', [])
-            diretor = "Desconhecido"
-            for membro in equipe:
-                if membro['job'] == 'Director':
-                    diretor = membro['name']
-                    break
+            print(f"{progresso} ✅ Achou: {nome_filme}")
             
-            # Jogando tudo na nossa sacola final
-            filmes_do_ano.append({
-                "ID": id_filme,
-                "Titulo": resp_detalhes.get('title'),
-                "Data_Estreia": resp_detalhes.get('release_date', 'Sem data'),
-                "Generos": texto_generos,
-                "Produtoras": texto_produtoras,
-                "Diretor": diretor,
-                "Elenco_Principal": texto_elenco,
-                "Popularidade_TMDB": resp_detalhes.get('popularity'),
-                "Sinopse": resp_detalhes.get('overview')
+            dados_finais.append({
+                'TITULO_ORIGINAL': nome_filme,
+                'PUBLICO': publico,
+                'GENEROS': generos,
+                'ATORES_PRINCIPAIS': atores,
+                'DIRETORES': diretores,
+                'PRODUTORAS': produtoras
             })
+            
+        else:
+            print(f"{progresso} ❌ Fugiu do radar: {nome_filme}")
+            
+    except Exception as e:
+        print(f"{progresso} ⚠️ Erro no filme {nome_filme}: {e}")
         
-        print(f"Página {pagina_atual}/{total_paginas} dominada!")
-        pagina_atual += 1
-    else:
-        print(f"O segurança barrou na página {pagina_atual}. Código {response_discover.status_code}")
-        break
+    time.sleep(0.3) # Respiro pro segurança do TMDB não banir a gente
 
-# Exportando a verdadeira mina de ouro
-df_filmes = pd.DataFrame(filmes_do_ano)
-df_filmes.to_csv("lancamentos_kinoplex_master.csv", index=False, sep=";", encoding='utf-8-sig')
-
-print("\n✅ TUDO NOSSO, PAIZÃO! Tabela 'lancamentos_kinoplex_master.csv' salva com sucesso!")
+print("\n3. Fechando a conta e passando a régua... 🧾")
+if dados_finais:
+    df_resultado = pd.DataFrame(dados_finais)
+    df_resultado.to_csv("base_treino_mvp_v1.csv", index=False, sep=";", encoding='utf-8-sig')
+    print("TUDO NOSSO! Arquivo 'base_treino_mvp_v1.csv' gerado! O MVP tá vivo! 🏆")
