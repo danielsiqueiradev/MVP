@@ -1,9 +1,9 @@
-import pandas as pd
+import pandas as pd # type: ignore
 import glob
 import os
 
 # Coloca o caminho certinho da tua pasta ANCINE2 aqui
-caminho_pasta = r"C:\Users\daniel.siqueira\Downloads\ANCINE2"
+caminho_pasta = r"C:\Users\Daniel Siqueira\Downloads\Bilheteria"
 
 print("Infiltrando na pasta da Ancine... 👀")
 # O glob vai listar todos os arquivos .csv que estão lá dentro
