@@ -1,7 +1,11 @@
+import os
 import requests
+from dotenv import load_dotenv
 
-api_key_tmdb = "d586bba83710b6aa29d7c6776bcc3335"
-api_key_omdb = "ca754e6"
+load_dotenv()
+
+api_key_tmdb = os.getenv("TMDB_API_KEY")
+api_key_omdb = os.getenv("OMDB_API_KEY")
 
 # Simulando que a gente já pescou esse ID lá no primeiro passo
 id_filme_tmdb = 1523898 

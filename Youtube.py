@@ -1,8 +1,11 @@
+import os
 import requests
+from dotenv import load_dotenv
 
-# 1. AS CHAVES DO CASTELO
-api_key_tmdb = "d586bba83710b6aa29d7c6776bcc3335"
-api_key_youtube = "AIzaSyDq0HbmWBIc62uOfF67xZbGG7hKylQsZsY"
+load_dotenv()
+
+api_key_tmdb = os.getenv("TMDB_API_KEY")
+api_key_youtube = os.getenv("YOURUBE_API_KEY")
 
 # 2. BATE NO TMDB PRA PEGAR O FILME
 url_filmes = f"https://api.themoviedb.org/3/movie/upcoming?api_key={api_key_tmdb}&language=pt-BR&region=BR"
