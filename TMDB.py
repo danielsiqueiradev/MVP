@@ -1,11 +1,12 @@
-
-
 import pandas as pd
 import requests
 import time
+import os
+from dotenv import load_dotenv
 
-# --- CONFIGURAÇÕES DE CRIA ---
-api_key = "d586bba83710b6aa29d7c6776bcc3335"
+load_dotenv()
+
+api_key = os.getenv("TMDB_API_KEY")
 arquivo_limpo = "ancine_filtrada.csv"
 
 print("1. Puxando a base limpa da Ancine... 📚")
@@ -65,6 +66,7 @@ for indice, linha in df_limpo.iterrows():
             
             # Guarda tudo no bolso
             dados_finais.append({
+                'ID_TMDB': id_tmdb,
                 'TITULO_ORIGINAL': nome_filme,
                 'PUBLICO': publico,
                 'ANO_LANCAMENTO': ano_lancamento,
