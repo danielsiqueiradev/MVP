@@ -1,6 +1,6 @@
-import pandas as pd
-from pytrends.request import TrendReq
-import praw
+import pandas as pd #type: ignore
+from pytrends.request import TrendReq #type: ignore
+import praw #type: ignore
 
 # --- CONFIGURAÇÕES REDDIT ---
 reddit = praw.Reddit(

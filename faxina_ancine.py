@@ -1,4 +1,4 @@
-import pandas as pd
+import pandas as pd #type: ignore
 
 print("1. Abrindo a base bruta da Ancine... 📚")
 arquivo_bruto = "historico_ancine_mestre_2014_2026.csv"

@@ -1,4 +1,4 @@
-import pandas as pd
+import pandas as pd #type: ignore
 
 print("1. Abrindo o cofre: Carregando a base completa... 📂")
 # Quando o extrator terminar, ele vai cuspir esse arquivo. 

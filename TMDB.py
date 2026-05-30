@@ -2,7 +2,7 @@ import pandas as pd
 import requests
 import time
 import os
-from dotenv import load_dotenv
+from dotenv import load_dotenv # type: ignore
 
 load_dotenv()
 

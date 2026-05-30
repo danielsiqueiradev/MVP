@@ -1,4 +1,4 @@
-import pandas as pd
+import pandas as pd #type: ignore
 # Aqui em cima ficariam os teus imports do requests e tuas chaves de API...
 
 print("Iniciando a varredura do Kinobot... 🤖🍿\n")
